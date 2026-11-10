@@ -3,9 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Urtajo · Directorio de vecinos</title>
-<meta name="description" content="Directorio de servicios y negocios de la urbanización Urtajo (Colmenar de Oreja).">
-<link rel="icon" href="logo.png">
+<title>Tajo Local · Directorio de las Vegas del Tajo</title>
+<meta name="description" content="Directorio gratuito de servicios y negocios de las Vegas del Tajo: Aranjuez, Colmenar de Oreja, Villaconejos y urbanizaciones.">
 <style>
   :root {
     --verde: #2f6f4f;
@@ -24,14 +23,13 @@
     line-height: 1.5;
   }
   header {
-    background: #fff;
-    border-bottom: 6px solid var(--verde);
-    padding: 28px 20px 24px;
+    background: var(--verde);
+    color: #fff;
+    padding: 40px 20px;
     text-align: center;
   }
-  header h1 { margin: 0; line-height: 0; }
-  header h1 img { width: 100%; max-width: 230px; height: auto; }
-  header p { margin: 14px auto 0; max-width: 560px; color: var(--gris); }
+  header h1 { margin: 0 0 8px; font-size: 2rem; }
+  header p { margin: 0 auto; max-width: 600px; opacity: .92; }
   main { max-width: 900px; margin: 0 auto; padding: 24px 16px 60px; }
   .barra { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 20px; }
   .barra input, .barra select {
@@ -73,6 +71,7 @@
     border-radius: 999px;
     margin-bottom: 8px;
   }
+  .etiqueta.zona { background: #eef1f4; color: var(--gris); margin-left: 6px; }
   .ficha p { margin: 6px 0 10px; color: #3b4652; white-space: pre-line; }
   .ficha a.tel {
     color: var(--verde);
@@ -113,8 +112,8 @@
 <body>
 
 <header>
-  <h1><img src="logo.png" alt="Urbanización Urtajo"></h1>
-  <p>Directorio de servicios y negocios de la urbanización. Encuentra a quien necesitas o anuncia lo que ofreces, gratis.</p>
+  <h1>🌾 Tajo Local</h1>
+  <p>Directorio de las Vegas del Tajo: servicios y negocios de Aranjuez, Colmenar de Oreja, Villaconejos y las urbanizaciones de la zona. Encuentra a quien necesitas o anuncia lo que ofreces, gratis.</p>
 </header>
 
 <main>
@@ -122,6 +121,9 @@
     <input id="buscar" type="search" placeholder="Buscar: fontanero, clases, jardín…">
     <select id="filtro">
       <option value="">Todas las categorías</option>
+    </select>
+    <select id="filtroZona">
+      <option value="">Toda la zona</option>
     </select>
     <button class="btn sec" onclick="document.getElementById('alta').scrollIntoView({behavior:'smooth'})">+ Anunciarme</button>
   </div>
@@ -138,6 +140,11 @@
 
       <label for="categoria">Categoría *</label>
       <select id="categoria" required>
+        <option value="">Elige una…</option>
+      </select>
+
+      <label for="zona">Zona donde das servicio *</label>
+      <select id="zona" required>
         <option value="">Elige una…</option>
       </select>
 
@@ -164,7 +171,7 @@
 </main>
 
 <footer>
-  Web vecinal de Urtajo, Colmenar de Oreja. Proyecto no oficial hecho por un vecino.<br>
+  Tajo Local · Web vecinal de las Vegas del Tajo (Aranjuez, Colmenar de Oreja, Villaconejos y urbanizaciones). Proyecto no oficial hecho por un vecino.<br>
   <a href="#" onclick="document.getElementById('privacidad').showModal();return false;">Privacidad</a>
 </footer>
 
@@ -190,11 +197,23 @@
   const $ = id => document.getElementById(id);
   let negocios = [];
 
-  // Rellenar los desplegables de categorías
+  // "Toda la zona" solo se usa al anunciarse: el servicio llega a todos los municipios
+  const ZONAS = [
+    "Aranjuez", "Colmenar de Oreja", "Villaconejos",
+    "Urtajo", "Otras urbanizaciones"
+  ];
+  const TODA = "Toda la zona";
+
+  // Rellenar los desplegables
   CATEGORIAS.forEach(c => {
     $("filtro").add(new Option(c, c));
     $("categoria").add(new Option(c, c));
   });
+  ZONAS.forEach(z => {
+    $("filtroZona").add(new Option(z, z));
+    $("zona").add(new Option(z, z));
+  });
+  $("zona").add(new Option(TODA + " (Vegas del Tajo)", TODA));
 
   function esc(t) {
     const d = document.createElement("div");
@@ -209,13 +228,16 @@
   function pinta() {
     const q = $("buscar").value.trim().toLowerCase();
     const cat = $("filtro").value;
+    const zona = $("filtroZona").value;
     const res = negocios.filter(n =>
       (!cat || n.categoria === cat) &&
+      (!zona || n.zona === zona || n.zona === TODA) &&
       (!q || [n.nombre, n.categoria, n.descripcion].join(" ").toLowerCase().includes(q))
     );
     $("lista").innerHTML = res.map(n => `
       <article class="ficha">
         <span class="etiqueta">${esc(n.categoria)}</span>
+        ${n.zona ? `<span class="etiqueta zona">📍 ${esc(n.zona)}</span>` : ""}
         <h3>${esc(n.nombre)}</h3>
         ${n.descripcion ? `<p>${esc(n.descripcion)}</p>` : ""}
         ${n.telefono ? `<a class="tel" href="tel:${esc(limpiaTel(n.telefono))}">📞 ${esc(n.telefono)}</a>` : ""}
@@ -229,7 +251,7 @@
   async function carga() {
     try {
       const r = await fetch(
-        SUPABASE_URL + "/rest/v1/negocios?select=nombre,categoria,descripcion,telefono&aprobado=eq.true&order=creado.desc",
+        SUPABASE_URL + "/rest/v1/negocios?select=nombre,categoria,zona,descripcion,telefono&aprobado=eq.true&order=creado.desc",
         { headers: { apikey: SUPABASE_KEY, Authorization: "Bearer " + SUPABASE_KEY } }
       );
       if (!r.ok) throw new Error(r.status);
@@ -242,6 +264,7 @@
 
   $("buscar").addEventListener("input", pinta);
   $("filtro").addEventListener("change", pinta);
+  $("filtroZona").addEventListener("change", pinta);
 
   $("form").addEventListener("submit", async ev => {
     ev.preventDefault();
@@ -262,6 +285,7 @@
     const datos = {
       nombre: $("nombre").value.trim(),
       categoria: $("categoria").value,
+      zona: $("zona").value,
       descripcion: $("descripcion").value.trim() || null,
       telefono: tel
     };
