@@ -72,6 +72,11 @@
     margin-bottom: 8px;
   }
   .etiqueta.zona { background: #eef1f4; color: var(--gris); margin-left: 6px; }
+  .foto { display: block; width: calc(100% + 36px); margin: -18px -18px 14px; height: 180px; object-fit: cover; border-radius: 14px 14px 0 0; background: #eef1f4; }
+  .ficha a.enlace { display: inline-block; margin-left: 14px; color: var(--verde); font-weight: 600; text-decoration: none; word-break: break-all; }
+  .contador { display: block; text-align: right; color: var(--gris); font-size: .85rem; margin-top: 4px; }
+  .previa { display: none; margin-top: 10px; max-width: 220px; border-radius: 10px; border: 1px solid var(--borde); }
+  .ayuda { color: var(--gris); font-size: .85rem; margin: 2px 0 0; }
   .ficha p { margin: 6px 0 10px; color: #3b4652; white-space: pre-line; }
   .ficha a.tel {
     color: var(--verde);
@@ -148,11 +153,20 @@
         <option value="">Elige una…</option>
       </select>
 
-      <label for="descripcion">Descripción</label>
-      <textarea id="descripcion" maxlength="500" placeholder="Qué ofreces, horarios, zona de servicio…"></textarea>
+      <label for="descripcion">Descripción (máx. 300 caracteres)</label>
+      <textarea id="descripcion" maxlength="300" placeholder="Qué ofreces, horarios…"></textarea>
+      <span class="contador" id="contador">0/300</span>
 
       <label for="telefono">Teléfono de contacto *</label>
       <input id="telefono" type="tel" maxlength="20" required placeholder="600 000 000">
+
+      <label for="enlace">Página web o red social (opcional)</label>
+      <input id="enlace" type="text" inputmode="url" maxlength="200" placeholder="https://www.instagram.com/tunegocio">
+
+      <label for="foto">Una foto (opcional)</label>
+      <input id="foto" type="file" accept="image/jpeg,image/png,image/webp">
+      <p class="ayuda">Se reduce automáticamente. Sube una imagen de tu trabajo o tu local, sin datos personales de terceros.</p>
+      <img id="previa" class="previa" alt="Vista previa de la foto">
 
       <!-- Campo trampa contra bots -->
       <div class="trampa" aria-hidden="true">
@@ -186,6 +200,7 @@
 <script>
   const SUPABASE_URL = "https://czlkxadbxltirtlbxyko.supabase.co";
   const SUPABASE_KEY = "sb_publishable_YhkE6b9cqRcIHTMOWOfmnQ_kurrawSA";
+  const FOTOS_URL = SUPABASE_URL + "/storage/v1/object/public/fotos/";
 
   const CATEGORIAS = [
     "Fontanería", "Electricidad", "Jardinería y piscinas", "Limpieza",
@@ -218,11 +233,28 @@
   function esc(t) {
     const d = document.createElement("div");
     d.textContent = t == null ? "" : String(t);
-    return d.innerHTML;
+    return d.innerHTML.replace(/"/g, "&quot;").replace(/'/g, "&#39;");
   }
 
   function limpiaTel(t) {
     return String(t || "").replace(/[^\d+]/g, "");
+  }
+
+  // Solo se aceptan enlaces http/https (nunca javascript: ni similares)
+  function urlSegura(u) {
+    try {
+      const x = new URL(String(u || "").trim());
+      return (x.protocol === "http:" || x.protocol === "https:") ? x.href : "";
+    } catch (e) { return ""; }
+  }
+  function normalizaUrl(u) {
+    u = String(u || "").trim();
+    if (!u) return "";
+    if (!/^https?:\/\//i.test(u)) u = "https://" + u;
+    return urlSegura(u);
+  }
+  function dominio(u) {
+    try { return new URL(u).hostname.replace(/^www\./, ""); } catch (e) { return "enlace"; }
   }
 
   function pinta() {
@@ -236,11 +268,13 @@
     );
     $("lista").innerHTML = res.map(n => `
       <article class="ficha">
+        ${n.foto && String(n.foto).startsWith(FOTOS_URL) ? `<img class="foto" src="${esc(n.foto)}" alt="${esc(n.nombre)}" loading="lazy">` : ""}
         <span class="etiqueta">${esc(n.categoria)}</span>
         ${n.zona ? `<span class="etiqueta zona">📍 ${esc(n.zona)}</span>` : ""}
         <h3>${esc(n.nombre)}</h3>
         ${n.descripcion ? `<p>${esc(n.descripcion)}</p>` : ""}
         ${n.telefono ? `<a class="tel" href="tel:${esc(limpiaTel(n.telefono))}">📞 ${esc(n.telefono)}</a>` : ""}
+        ${urlSegura(n.enlace) ? `<a class="enlace" href="${esc(urlSegura(n.enlace))}" target="_blank" rel="noopener noreferrer nofollow ugc">🔗 ${esc(dominio(n.enlace))}</a>` : ""}
       </article>`).join("");
     $("estado").style.display = res.length ? "none" : "block";
     $("estado").textContent = negocios.length
@@ -251,7 +285,7 @@
   async function carga() {
     try {
       const r = await fetch(
-        SUPABASE_URL + "/rest/v1/negocios?select=nombre,categoria,zona,descripcion,telefono&aprobado=eq.true&order=creado.desc",
+        SUPABASE_URL + "/rest/v1/negocios?select=nombre,categoria,zona,descripcion,telefono,enlace,foto&aprobado=eq.true&order=creado.desc",
         { headers: { apikey: SUPABASE_KEY, Authorization: "Bearer " + SUPABASE_KEY } }
       );
       if (!r.ok) throw new Error(r.status);
@@ -266,11 +300,87 @@
   $("filtro").addEventListener("change", pinta);
   $("filtroZona").addEventListener("change", pinta);
 
+  // Contador de caracteres de la descripción
+  function actualizaContador() {
+    $("contador").textContent = $("descripcion").value.length + "/300";
+  }
+  $("descripcion").addEventListener("input", actualizaContador);
+
+  // Foto: se reduce a 900 px como máximo y se convierte a JPEG antes de subirla
+  let fotoBlob = null;
+
+  function codifica(canvas, calidad) {
+    return new Promise(ok => canvas.toBlob(ok, "image/jpeg", calidad));
+  }
+
+  function reduce(file) {
+    return new Promise((ok, ko) => {
+      const img = new Image();
+      const url = URL.createObjectURL(file);
+      img.onload = async () => {
+        const k = Math.min(1, 900 / Math.max(img.width, img.height));
+        const c = document.createElement("canvas");
+        c.width = Math.max(1, Math.round(img.width * k));
+        c.height = Math.max(1, Math.round(img.height * k));
+        const ctx = c.getContext("2d");
+        ctx.fillStyle = "#fff";
+        ctx.fillRect(0, 0, c.width, c.height);
+        ctx.drawImage(img, 0, 0, c.width, c.height);
+        URL.revokeObjectURL(url);
+        let b = await codifica(c, 0.82);
+        if (b && b.size > 900000) b = await codifica(c, 0.6);
+        b ? ok(b) : ko(new Error("no se pudo reducir"));
+      };
+      img.onerror = () => { URL.revokeObjectURL(url); ko(new Error("imagen no válida")); };
+      img.src = url;
+    });
+  }
+
+  async function subeFoto(blob) {
+    const nombreArchivo = (window.crypto && crypto.randomUUID ? crypto.randomUUID() : Date.now() + "-" + Math.random().toString(36).slice(2)) + ".jpg";
+    const r = await fetch(SUPABASE_URL + "/storage/v1/object/fotos/" + nombreArchivo, {
+      method: "POST",
+      headers: {
+        apikey: SUPABASE_KEY,
+        Authorization: "Bearer " + SUPABASE_KEY,
+        "Content-Type": "image/jpeg",
+        "x-upsert": "false"
+      },
+      body: blob
+    });
+    if (!r.ok) throw new Error("foto " + r.status);
+    return FOTOS_URL + nombreArchivo;
+  }
+
+  $("foto").addEventListener("change", async () => {
+    const f = $("foto").files[0];
+    const previa = $("previa");
+    const msg = $("msg");
+    fotoBlob = null;
+    previa.style.display = "none";
+    msg.className = "msg";
+    if (!f) return;
+    if (f.size > 15 * 1024 * 1024) {
+      $("foto").value = "";
+      msg.className = "msg err";
+      msg.textContent = "La foto es demasiado grande (máximo 15 MB).";
+      return;
+    }
+    try {
+      fotoBlob = await reduce(f);
+      previa.src = URL.createObjectURL(fotoBlob);
+      previa.style.display = "block";
+    } catch (e) {
+      $("foto").value = "";
+      msg.className = "msg err";
+      msg.textContent = "No se pudo leer esa imagen. Prueba con otra (JPG, PNG o WebP).";
+    }
+  });
+
   $("form").addEventListener("submit", async ev => {
     ev.preventDefault();
     const msg = $("msg");
     msg.className = "msg";
-    msg.style.display = "none";
 
     // Si un bot rellena el campo trampa, fingimos éxito y no enviamos nada
     if ($("web").value) { msg.className = "msg ok"; msg.textContent = "¡Gracias!"; return; }
@@ -282,16 +392,26 @@
       return;
     }
 
+    const enlaceTexto = $("enlace").value.trim();
+    const enlace = normalizaUrl(enlaceTexto);
+    if (enlaceTexto && !enlace) {
+      msg.className = "msg err";
+      msg.textContent = "Revisa el enlace: no parece una dirección web válida.";
+      return;
+    }
+
     const datos = {
       nombre: $("nombre").value.trim(),
       categoria: $("categoria").value,
       zona: $("zona").value,
-      descripcion: $("descripcion").value.trim() || null,
-      telefono: tel
+      descripcion: $("descripcion").value.trim().slice(0, 300) || null,
+      telefono: tel,
+      enlace: enlace || null
     };
 
     $("enviar").disabled = true;
     try {
+      if (fotoBlob) datos.foto = await subeFoto(fotoBlob);
       const r = await fetch(SUPABASE_URL + "/rest/v1/negocios", {
         method: "POST",
         headers: {
