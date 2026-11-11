@@ -5,6 +5,17 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Tajo Local · Directorio de las Vegas del Tajo</title>
 <meta name="description" content="Directorio gratuito de servicios y negocios de las Vegas del Tajo: Aranjuez, Colmenar de Oreja, Villaconejos y urbanizaciones.">
+<meta name="theme-color" content="#2f6f4f">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="es_ES">
+<meta property="og:site_name" content="Tajo Local">
+<meta property="og:title" content="Tajo Local · Directorio de las Vegas del Tajo">
+<meta property="og:description" content="Servicios y negocios de Aranjuez, Colmenar de Oreja, Villaconejos y urbanizaciones. Encuentra a quien necesitas o anuncia el tuyo, gratis.">
+<meta property="og:url" content="https://tajolocal.github.io/">
+<meta property="og:image" content="https://tajolocal.github.io/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%232f6f4f'/%3E%3Cpath d='M5 20c3-4 6-4 9 0s6 4 9 0 3-3 4-2' fill='none' stroke='white' stroke-width='2.6' stroke-linecap='round'/%3E%3C/svg%3E">
 <style>
   :root {
@@ -117,6 +128,24 @@
     text-decoration: none;
   }
   .vacio, .estado { text-align: center; color: var(--gris); padding: 30px 10px; }
+  .estado a { color: var(--verde); font-weight: 700; }
+  .acciones { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-top: 12px; }
+  .acciones .btn { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 10px 18px; }
+  .btn.wa { background: #25d366; color: #073b1e; }
+  .acciones .numero { color: var(--gris); font-size: .95rem; }
+  .ficha a.enlace { margin-left: 0; }
+  .informar { display: inline-block; margin-top: 12px; font-size: .82rem; color: var(--gris); text-decoration: none; }
+  .informar:hover { color: #8a1f17; text-decoration: underline; }
+  .nota { color: var(--gris); font-size: .9rem; }
+  .nota a { color: var(--verde); font-weight: 600; }
+  @media (min-width: 760px) {
+    .lista { grid-template-columns: 1fr 1fr; }
+  }
+  @media (max-width: 520px) {
+    .nav { padding: 10px 14px; }
+    .hero { padding: 40px 16px 100px; }
+    .acciones .btn { flex: 1 1 45%; justify-content: center; }
+  }
   .alta {
     margin-top: 40px;
     background: #fff;
@@ -186,6 +215,7 @@
 
   <div id="estado" class="estado">Cargando…</div>
   <div id="lista" class="lista"></div>
+  <p style="text-align:center"><button type="button" class="btn sec" id="mas" style="display:none">Mostrar más</button></p>
 
   <section class="alta" id="alta">
     <h2>Anuncia tu servicio o negocio</h2>
@@ -232,19 +262,21 @@
       <button class="btn" id="enviar" type="submit">Enviar anuncio</button>
       <div id="msg" class="msg"></div>
     </form>
+    <p class="nota">¿Quieres modificar o borrar tu anuncio? Escribe a <a href="mailto:tajolocal@gmail.com">tajolocal@gmail.com</a> y lo hacemos por ti.</p>
   </section>
 </main>
 
 <footer>
   Tajo Local · Web vecinal de las Vegas del Tajo (Aranjuez, Colmenar de Oreja, Villaconejos y urbanizaciones). Proyecto no oficial hecho por un vecino.<br>
   <a href="#" onclick="document.getElementById('privacidad').showModal();return false;">Privacidad</a>
+  · ¿Quieres borrar o cambiar tu anuncio? <a href="mailto:tajolocal@gmail.com">tajolocal@gmail.com</a>
 </footer>
 
 <dialog id="privacidad">
   <h2>Privacidad y condiciones de uso</h2>
   <p>Los datos que envías (nombre o negocio, categoría, descripción y teléfono) se publican en esta web para que los vecinos puedan contactar contigo. No se usan para ningún otro fin ni se ceden a terceros.</p>
   <p>Puedes pedir en cualquier momento que se modifique o elimine tu anuncio escribiendo al email de contacto indicado más abajo; se atenderá en un plazo máximo de 30 días. Los datos se almacenan en servidores de Supabase.</p>
-  <p><strong>Responsable:</strong> Luis Gómez · <a href="mailto:luisgremon@gmail.com">luisgremon@gmail.com</a></p>
+  <p><strong>Responsable:</strong> Luis Gómez · <a href="mailto:tajolocal@gmail.com">tajolocal@gmail.com</a></p>
   <p><strong>Condiciones de uso:</strong> Tajo Local es un proyecto vecinal no oficial. Los anuncios los publican los propios anunciantes: Tajo Local no se responsabiliza de los servicios anunciados ni de los acuerdos entre vecinos y anunciantes. No se admiten anuncios ilegales ni datos de terceros sin su permiso, y cualquier anuncio puede retirarse sin previo aviso.</p>
   <button class="btn" onclick="document.getElementById('privacidad').close()">Cerrar</button>
 </dialog>
@@ -263,6 +295,9 @@
 
   const $ = id => document.getElementById(id);
   let negocios = [];
+  let errorCarga = false;
+  const PAGINA = 24;
+  let mostrados = PAGINA;
 
   // "Toda la zona" solo se usa al anunciarse: el servicio llega a todos los municipios
   const ZONAS = [
@@ -309,8 +344,27 @@
     try { return new URL(u).hostname.replace(/^www\./, ""); } catch (e) { return "enlace"; }
   }
 
+  // Número para wa.me: solo móviles españoles (6xx / 7xx), con prefijo 34
+  function numWhatsApp(t) {
+    let d = String(t || "").replace(/[^\d+]/g, "");
+    if (d.startsWith("+")) d = d.slice(1);
+    else if (d.startsWith("00")) d = d.slice(2);
+    else if (/^[6-9]\d{8}$/.test(d)) d = "34" + d;
+    return /^34[67]\d{8}$/.test(d) ? d : "";
+  }
+
+  // Correo de contacto y enlace "Informar de un problema" (abre el correo con el asunto ya escrito)
+  const CORREO = "tajolocal@gmail.com";
+  function informarUrl(n) {
+    const asunto = "Informar de un problema: " + (n.nombre || "anuncio");
+    const cuerpo = "Anuncio: " + (n.nombre || "") + " (" + (n.categoria || "") + (n.zona ? ", " + n.zona : "") + ")\n\n" +
+      "Qué ocurre (teléfono incorrecto, posible estafa, ya no ofrece el servicio, otro):\n";
+    return "mailto:" + CORREO + "?subject=" + encodeURIComponent(asunto) + "&body=" + encodeURIComponent(cuerpo);
+  }
+
   function pinta() {
-    const q = $("buscar").value.trim().toLowerCase();
+    if (errorCarga) return;
+    const q =$("buscar").value.trim().toLowerCase();
     const cat = $("filtro").value;
     const zona = $("filtroZona").value;
     const res = negocios.filter(n =>
@@ -318,20 +372,26 @@
       (!zona || n.zona === zona || n.zona === TODA) &&
       (!q || [n.nombre, n.categoria, n.descripcion].join(" ").toLowerCase().includes(q))
     );
-    $("lista").innerHTML = res.map(n => `
+    $("lista").innerHTML = res.slice(0, mostrados).map(n => `
       <article class="ficha">
         ${n.foto && String(n.foto).startsWith(FOTOS_URL) ? `<img class="foto" src="${esc(n.foto)}" alt="${esc(n.nombre)}" loading="lazy">` : ""}
         <span class="etiqueta">${esc(n.categoria)}</span>
         ${n.zona ? `<span class="etiqueta zona">📍 ${esc(n.zona)}</span>` : ""}
         <h3>${esc(n.nombre)}</h3>
         ${n.descripcion ? `<p>${esc(n.descripcion)}</p>` : ""}
-        ${n.telefono ? `<a class="tel" href="tel:${esc(limpiaTel(n.telefono))}">📞 ${esc(n.telefono)}</a>` : ""}
-        ${urlSegura(n.enlace) ? `<a class="enlace" href="${esc(urlSegura(n.enlace))}" target="_blank" rel="noopener noreferrer nofollow ugc">🔗 ${esc(dominio(n.enlace))}</a>` : ""}
+        <div class="acciones">
+          ${n.telefono ? `<a class="btn" href="tel:${esc(limpiaTel(n.telefono))}">📞 Llamar</a>` : ""}
+          ${numWhatsApp(n.telefono) ? `<a class="btn wa" href="https://wa.me/${numWhatsApp(n.telefono)}?text=${encodeURIComponent("Hola, te he visto en Tajo Local.")}" target="_blank" rel="noopener noreferrer">💬 WhatsApp</a>` : ""}
+          ${n.telefono ? `<span class="numero">${esc(n.telefono)}</span>` : ""}
+          ${urlSegura(n.enlace) ? `<a class="enlace" href="${esc(urlSegura(n.enlace))}" target="_blank" rel="noopener noreferrer nofollow ugc">🔗 ${esc(dominio(n.enlace))}</a>` : ""}
+        </div>
+        <a class="informar" href="${esc(informarUrl(n))}">⚑ Informar de un problema</a>
       </article>`).join("");
+    $("mas").style.display = res.length > mostrados ? "block" : "none";
     $("estado").style.display = res.length ? "none" : "block";
-    $("estado").textContent = negocios.length
-      ? "No hay resultados con esa búsqueda."
-      : "Todavía no hay anuncios. ¡Sé el primero en anunciarte!";
+    $("estado").innerHTML = negocios.length
+      ? 'Aún no hay nadie que encaje con esa búsqueda. ¿Eres tú? <a href="#alta">Anúnciate gratis</a>'
+      : 'Todavía no hay anuncios. ¡Sé el primero! <a href="#alta">Anúnciate gratis</a>';
   }
 
   async function carga() {
@@ -344,13 +404,17 @@
       negocios = await r.json();
       pinta();
     } catch (e) {
+      errorCarga = true;
       $("estado").textContent = "No se pudo cargar el directorio. Inténtalo de nuevo más tarde.";
     }
   }
 
-  $("buscar").addEventListener("input", pinta);
-  $("filtro").addEventListener("change", pinta);
-  $("filtroZona").addEventListener("change", pinta);
+  // Cualquier cambio de búsqueda o filtro vuelve a la primera página
+  const reinicia = () => { mostrados = PAGINA; pinta(); };
+  $("buscar").addEventListener("input", reinicia);
+  $("filtro").addEventListener("change", reinicia);
+  $("filtroZona").addEventListener("change", reinicia);
+  $("mas").addEventListener("click", () => { mostrados += PAGINA; pinta(); });
 
   // Accesos rápidos por zona en la cabecera
   function pintaChips() {
@@ -363,6 +427,7 @@
       b.textContent = z || "📍 Toda la zona";
       b.addEventListener("click", () => {
         $("filtroZona").value = z;
+        mostrados = PAGINA;
         pinta();
         pintaChips();
         $("buscador").scrollIntoView({ behavior: "smooth" });
@@ -501,7 +566,7 @@
       $("previa").style.display = "none";
       actualizaContador();
       msg.className = "msg ok";
-      msg.textContent = "¡Recibido! Tu anuncio aparecerá en cuanto lo revisemos.";
+      msg.textContent = "¡Recibido! Tu anuncio aparecerá en cuanto lo revisemos. Si más adelante quieres modificarlo o borrarlo, escribe a tajolocal@gmail.com.";
     } catch (e) {
       msg.className = "msg err";
       msg.textContent = "No se pudo enviar el anuncio. Inténtalo de nuevo en unos minutos.";
