@@ -229,6 +229,12 @@
         <option value="">Elige una…</option>
       </select>
 
+      <label for="categoria2">Segunda categoría (opcional)</label>
+      <select id="categoria2">
+        <option value="">Ninguna</option>
+      </select>
+      <p class="ayuda">Si ofreces servicios de dos tipos, elígelos aquí y salen en un solo anuncio.</p>
+
       <label for="zona">Zona donde das servicio *</label>
       <select id="zona" required>
         <option value="">Elige una…</option>
@@ -310,6 +316,7 @@
   CATEGORIAS.forEach(c => {
     $("filtro").add(new Option(c, c));
     $("categoria").add(new Option(c, c));
+    $("categoria2").add(new Option(c, c));
   });
   ZONAS.forEach(z => {
     $("filtroZona").add(new Option(z, z));
@@ -321,6 +328,11 @@
     const d = document.createElement("div");
     d.textContent = t == null ? "" : String(t);
     return d.innerHTML.replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+  }
+
+  // Una ficha puede tener hasta dos categorías, guardadas como "A, B"
+  function cats(c) {
+    return String(c || "").split(",").map(x => x.trim()).filter(Boolean);
   }
 
   function limpiaTel(t) {
@@ -368,14 +380,14 @@
     const cat = $("filtro").value;
     const zona = $("filtroZona").value;
     const res = negocios.filter(n =>
-      (!cat || n.categoria === cat) &&
+      (!cat || cats(n.categoria).includes(cat)) &&
       (!zona || n.zona === zona || n.zona === TODA) &&
       (!q || [n.nombre, n.categoria, n.descripcion].join(" ").toLowerCase().includes(q))
     );
     $("lista").innerHTML = res.slice(0, mostrados).map(n => `
       <article class="ficha">
         ${n.foto && String(n.foto).startsWith(FOTOS_URL) ? `<img class="foto" src="${esc(n.foto)}" alt="${esc(n.nombre)}" loading="lazy">` : ""}
-        <span class="etiqueta">${esc(n.categoria)}</span>
+        ${cats(n.categoria).map(c => `<span class="etiqueta">${esc(c)}</span>`).join(" ")}
         ${n.zona ? `<span class="etiqueta zona">📍 ${esc(n.zona)}</span>` : ""}
         <h3>${esc(n.nombre)}</h3>
         ${n.descripcion ? `<p>${esc(n.descripcion)}</p>` : ""}
@@ -550,7 +562,8 @@
 
     const datos = {
       nombre: $("nombre").value.trim(),
-      categoria: $("categoria").value,
+      categoria: [$("categoria").value, $("categoria2").value]
+        .filter((c, i, a) => c && a.indexOf(c) === i).join(", "),
       zona: $("zona").value,
       descripcion: $("descripcion").value.trim().slice(0, 300) || null,
       telefono: tel,
