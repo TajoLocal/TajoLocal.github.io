@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Tajo Local · Directorio de las Vegas del Tajo</title>
 <meta name="description" content="Directorio gratuito de servicios y negocios de las Vegas del Tajo: Aranjuez, Colmenar de Oreja, Villaconejos y urbanizaciones.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%232f6f4f'/%3E%3Cpath d='M5 20c3-4 6-4 9 0s6 4 9 0 3-3 4-2' fill='none' stroke='white' stroke-width='2.6' stroke-linecap='round'/%3E%3C/svg%3E">
 <style>
   :root {
     --verde: #2f6f4f;
@@ -22,14 +23,46 @@
     background: var(--fondo);
     line-height: 1.5;
   }
-  header {
-    background: var(--verde);
-    color: #fff;
-    padding: 40px 20px;
-    text-align: center;
+  a.btn { display: inline-block; text-decoration: none; }
+  .barra, .alta { scroll-margin-top: 70px; }
+
+  /* Barra superior */
+  .nav {
+    position: sticky; top: 0; z-index: 10;
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 10px 20px;
+    background: rgba(255,255,255,.92);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--borde);
   }
-  header h1 { margin: 0 0 8px; font-size: 2rem; }
-  header p { margin: 0 auto; max-width: 600px; opacity: .92; }
+  .marca { display: flex; align-items: center; gap: 8px; font-weight: 800; font-size: 1.2rem; color: var(--verde); text-decoration: none; }
+  .marca svg { width: 30px; height: 30px; }
+  .nav .btn { padding: 8px 16px; font-size: .95rem; }
+
+  /* Cabecera principal */
+  .hero {
+    position: relative; overflow: hidden; color: #fff; text-align: center;
+    padding: 56px 20px 120px;
+    background: linear-gradient(160deg, #1e5a3f 0%, #2f6f4f 45%, #2a8a8c 100%);
+  }
+  .hero::before {
+    content: ""; position: absolute; width: 240px; height: 240px; border-radius: 50%;
+    top: -70px; right: 8%;
+    background: radial-gradient(circle, rgba(255,214,102,.6), rgba(255,214,102,0) 70%);
+  }
+  .hero > * { position: relative; }
+  .hero h1 { margin: 0 auto 12px; font-size: clamp(1.8rem, 5vw, 2.8rem); line-height: 1.15; max-width: 760px; }
+  .hero p { margin: 0 auto 24px; max-width: 620px; font-size: 1.08rem; opacity: .95; }
+  .cta { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+  .hero .btn.claro { background: #fff; color: var(--verde); }
+  .hero .btn.borde { background: transparent; border: 2px solid rgba(255,255,255,.85); color: #fff; }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-top: 28px; }
+  .chip {
+    background: rgba(255,255,255,.16); color: #fff; border: 1px solid rgba(255,255,255,.45);
+    padding: 7px 14px; border-radius: 999px; cursor: pointer; font-size: .92rem; font-family: inherit;
+  }
+  .chip:hover, .chip.activa { background: #fff; color: var(--verde); }
+  .hero .paisaje { position: absolute; left: 0; right: 0; bottom: -1px; width: 100%; height: 90px; display: block; }
   main { max-width: 900px; margin: 0 auto; padding: 24px 16px 60px; }
   .barra { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 20px; }
   .barra input, .barra select {
@@ -116,13 +149,31 @@
 </head>
 <body>
 
-<header>
-  <h1>🌾 Tajo Local</h1>
-  <p>Directorio de las Vegas del Tajo: servicios y negocios de Aranjuez, Colmenar de Oreja, Villaconejos y las urbanizaciones de la zona. Encuentra a quien necesitas o anuncia lo que ofreces, gratis.</p>
+<nav class="nav">
+  <a class="marca" href="#">
+    <svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="8" fill="#2f6f4f"/><path d="M5 13c3-4 6-4 9 0s6 4 9 0 3-3 4-2" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" opacity=".6"/><path d="M5 20c3-4 6-4 9 0s6 4 9 0 3-3 4-2" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round"/></svg>
+    <span>Tajo Local</span>
+  </a>
+  <a class="btn" href="#alta">+ Anunciarme</a>
+</nav>
+
+<header class="hero">
+  <h1>Todo lo que necesitas en las Vegas del Tajo</h1>
+  <p>Fontaneros, electricistas, clases, comida, cuidado de mayores… Encuentra servicios y negocios de tu zona o anuncia el tuyo, gratis.</p>
+  <div class="cta">
+    <a class="btn claro" href="#buscador">Buscar un servicio</a>
+    <a class="btn borde" href="#alta">Anunciar mi negocio</a>
+  </div>
+  <div class="chips" id="chips"></div>
+  <svg class="paisaje" viewBox="0 0 1440 120" preserveAspectRatio="none" aria-hidden="true">
+    <path d="M0,70 C240,20 480,110 720,70 C960,30 1200,100 1440,60 L1440,120 L0,120 Z" fill="#fff" opacity=".18"/>
+    <path d="M0,90 C300,50 520,120 800,88 C1060,58 1260,110 1440,86 L1440,120 L0,120 Z" fill="#fff" opacity=".3"/>
+    <path d="M0,104 C320,78 560,122 860,102 C1120,84 1290,114 1440,100 L1440,120 L0,120 Z" fill="#f6f8f7"/>
+  </svg>
 </header>
 
 <main>
-  <div class="barra">
+  <div class="barra" id="buscador">
     <input id="buscar" type="search" placeholder="Buscar: fontanero, clases, jardín…">
     <select id="filtro">
       <option value="">Todas las categorías</option>
@@ -299,6 +350,27 @@
   $("buscar").addEventListener("input", pinta);
   $("filtro").addEventListener("change", pinta);
   $("filtroZona").addEventListener("change", pinta);
+
+  // Accesos rápidos por zona en la cabecera
+  function pintaChips() {
+    const cont = $("chips");
+    cont.innerHTML = "";
+    ["", ...ZONAS].forEach(z => {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = "chip" + ($("filtroZona").value === z ? " activa" : "");
+      b.textContent = z || "📍 Toda la zona";
+      b.addEventListener("click", () => {
+        $("filtroZona").value = z;
+        pinta();
+        pintaChips();
+        $("buscador").scrollIntoView({ behavior: "smooth" });
+      });
+      cont.appendChild(b);
+    });
+  }
+  pintaChips();
+  $("filtroZona").addEventListener("change", pintaChips);
 
   // Contador de caracteres de la descripción
   function actualizaContador() {
