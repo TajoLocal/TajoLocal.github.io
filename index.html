@@ -116,6 +116,12 @@
     margin-bottom: 8px;
   }
   .etiqueta.zona { background: #eef1f4; color: var(--gris); margin-left: 6px; }
+  .lista { align-items: start; }
+  .banda {
+    display: flex; align-items: center; justify-content: center;
+    width: calc(100% + 36px); margin: -18px -18px 14px; height: 84px;
+    border-radius: 14px 14px 0 0; font-size: 2.6rem; line-height: 1;
+  }
   .foto { display: block; width: calc(100% + 36px); margin: -18px -18px 14px; height: auto; max-height: 380px; object-fit: contain; border-radius: 14px 14px 0 0; background: #eef1f4; }
   .ficha a.enlace { display: inline-block; margin-left: 14px; color: var(--verde); font-weight: 600; text-decoration: none; word-break: break-all; }
   .contador { display: block; text-align: right; color: var(--gris); font-size: .85rem; margin-top: 4px; }
@@ -330,6 +336,27 @@
     return d.innerHTML.replace(/"/g, "&quot;").replace(/'/g, "&#39;");
   }
 
+  // Banda con icono para las fichas sin foto (según la primera categoría)
+  const ICONOS = {
+    "Fontanería": ["🔧", "#dbeafe"],
+    "Electricidad": ["⚡", "#fef3c7"],
+    "Jardinería y piscinas": ["🌿", "#dcfce7"],
+    "Limpieza": ["🧽", "#cffafe"],
+    "Obras y reformas": ["🧱", "#fde7d3"],
+    "Clases y formación": ["📚", "#ede9fe"],
+    "Cuidado de niños y mayores": ["🤝", "#fce7f3"],
+    "Comida y reparto": ["🍽️", "#ffedd5"],
+    "Belleza y bienestar": ["💆", "#f3e8ff"],
+    "Mascotas": ["🐾", "#fef9c3"],
+    "Transporte": ["🚐", "#e0e7ff"],
+    "Informática y tecnología": ["💻", "#e2e8f0"],
+    "Otros": ["🏡", "#e8f3ed"]
+  };
+  function banda(cat) {
+    const [icono, fondo] = ICONOS[cat] || ICONOS["Otros"];
+    return `<div class="banda" style="background:${fondo}" aria-hidden="true">${icono}</div>`;
+  }
+
   // Una ficha puede tener hasta dos categorías, guardadas como "A, B"
   function cats(c) {
     return String(c || "").split(",").map(x => x.trim()).filter(Boolean);
@@ -386,7 +413,7 @@
     );
     $("lista").innerHTML = res.slice(0, mostrados).map(n => `
       <article class="ficha">
-        ${n.foto && String(n.foto).startsWith(FOTOS_URL) ? `<img class="foto" src="${esc(n.foto)}" alt="${esc(n.nombre)}" loading="lazy">` : ""}
+        ${n.foto && String(n.foto).startsWith(FOTOS_URL) ? `<img class="foto" src="${esc(n.foto)}" alt="${esc(n.nombre)}" loading="lazy">` : banda(cats(n.categoria)[0])}
         ${cats(n.categoria).map(c => `<span class="etiqueta">${esc(c)}</span>`).join(" ")}
         ${n.zona ? `<span class="etiqueta zona">📍 ${esc(n.zona)}</span>` : ""}
         <h3>${esc(n.nombre)}</h3>
