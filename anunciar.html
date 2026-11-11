@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Anunciarme · Tajo Local</title>
+<meta name="description" content="Anuncia gratis tu servicio o negocio en Tajo Local, el directorio de las Vegas del Tajo. No hace falta tener local.">
+<meta name="theme-color" content="#2f6f4f">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="es_ES">
+<meta property="og:site_name" content="Tajo Local">
+<meta property="og:title" content="Anúnciate gratis en Tajo Local">
+<meta property="og:description" content="Anuncia gratis tu servicio o negocio en el directorio de las Vegas del Tajo. No hace falta tener local.">
+<meta property="og:url" content="https://tajolocal.github.io/anunciar.html">
+<meta property="og:image" content="https://tajolocal.github.io/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%232f6f4f'/%3E%3Cpath d='M5 20c3-4 6-4 9 0s6 4 9 0 3-3 4-2' fill='none' stroke='white' stroke-width='2.6' stroke-linecap='round'/%3E%3C/svg%3E">
+<style>
+  :root { --verde:#2f6f4f; --verde-claro:#e8f3ed; --texto:#1f2933; --gris:#667085; --borde:#d9e0e6; --fondo:#f6f8f7; }
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  body { margin:0; font-family: system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; color:var(--texto); background:var(--fondo); line-height:1.5; }
+  .nav { position:sticky; top:0; z-index:10; display:flex; justify-content:space-between; align-items:center; padding:10px 20px; background:rgba(255,255,255,.92); backdrop-filter:blur(8px); border-bottom:1px solid var(--borde); }
+  .marca { display:flex; align-items:center; gap:8px; font-weight:800; font-size:1.2rem; color:var(--verde); text-decoration:none; }
+  .marca svg { width:30px; height:30px; }
+  .btn { background:var(--verde); color:#fff; border:0; padding:12px 20px; border-radius:10px; font-size:1rem; cursor:pointer; font-weight:600; display:inline-block; text-decoration:none; }
+  .btn:hover { filter:brightness(1.08); }
+  .btn:disabled { opacity:.6; cursor:wait; }
+  .btn.sec { background:#fff; color:var(--verde); border:2px solid var(--verde); }
+  .nav .btn { padding:8px 16px; font-size:.95rem; }
+  main { max-width:720px; margin:0 auto; padding:28px 16px 50px; }
+  h1 { margin:0 0 6px; font-size:clamp(1.6rem,4.5vw,2.1rem); line-height:1.2; }
+  .sub { margin:0 0 22px; color:var(--gris); font-size:1.05rem; }
+  .pasos { list-style:none; margin:0 0 26px; padding:0; display:grid; gap:10px; }
+  .pasos li { display:flex; gap:14px; align-items:flex-start; background:#fff; border:1px solid var(--borde); border-radius:14px; padding:14px 16px; }
+  .pasos .n { flex:0 0 32px; height:32px; border-radius:50%; background:var(--verde); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:700; }
+  .pasos strong { display:block; }
+  .pasos span.t { color:var(--gris); font-size:.93rem; }
+  @media (min-width:640px){ .pasos { grid-template-columns:repeat(3,1fr); } .pasos li { flex-direction:column; } }
+  .alta { background:#fff; border:1px solid var(--borde); border-radius:14px; padding:22px; }
+  .alta h2 { margin-top:0; }
+  .alta label { display:block; font-weight:600; margin:14px 0 4px; }
+  .alta input[type=text], .alta input[type=tel], .alta select, .alta textarea { width:100%; padding:12px 14px; border:1px solid var(--borde); border-radius:10px; font-size:1rem; font-family:inherit; background:#fff; }
+  .alta textarea { min-height:100px; resize:vertical; }
+  .contador { display:block; text-align:right; color:var(--gris); font-size:.85rem; margin-top:4px; }
+  .previa { display:none; margin-top:10px; max-width:220px; border-radius:10px; border:1px solid var(--borde); }
+  .ayuda { color:var(--gris); font-size:.85rem; margin:4px 0 0; }
+  .check { display:flex; gap:10px; align-items:flex-start; margin:16px 0; font-weight:400 !important; font-size:.92rem; }
+  .check input { margin-top:4px; }
+  .msg { margin-top:14px; padding:12px 14px; border-radius:10px; display:none; }
+  .msg.ok { display:block; background:#e8f6ee; color:#1b5e3b; }
+  .msg.err { display:block; background:#fdecea; color:#8a1f17; }
+  .trampa { position:absolute; left:-9999px; }
+  .hecho { text-align:center; background:#fff; border:2px solid var(--verde); border-radius:14px; padding:34px 22px; }
+  .hecho .grande { font-size:3rem; line-height:1; }
+  .hecho h2 { margin:10px 0 8px; }
+  .hecho p { color:var(--gris); margin:0 0 6px; }
+  .hecho .btns { display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin-top:20px; }
+  .nota { color:var(--gris); font-size:.9rem; }
+  .nota a, footer a { color:var(--verde); font-weight:600; }
+  footer { text-align:center; color:var(--gris); font-size:.85rem; padding:0 16px 40px; }
+  dialog { border:0; border-radius:14px; max-width:560px; padding:24px; }
+  dialog::backdrop { background:rgba(0,0,0,.4); }
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <a class="marca" href="index.html">
+    <svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="8" fill="#2f6f4f"/><path d="M5 13c3-4 6-4 9 0s6 4 9 0 3-3 4-2" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" opacity=".6"/><path d="M5 20c3-4 6-4 9 0s6 4 9 0 3-3 4-2" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round"/></svg>
+    <span>Tajo Local</span>
+  </a>
+  <a class="btn sec" href="index.html">← Ver anuncios</a>
+</nav>
+
+<main>
+  <h1>Anuncia tu servicio o negocio</h1>
+  <p class="sub">Es gratis. Vale para negocios y también para vecinos que ofrecen sus servicios: no hace falta tener local.</p>
+
+  <ol class="pasos" aria-label="Cómo funciona">
+    <li><span class="n">1</span><div><strong>Rellena el formulario</strong><span class="t">Unos 2 minutos. La foto y el enlace son opcionales.</span></div></li>
+    <li><span class="n">2</span><div><strong>Lo revisamos</strong><span class="t">Comprobamos cada anuncio antes de publicarlo, para evitar estafas.</span></div></li>
+    <li><span class="n">3</span><div><strong>Aparece en el directorio</strong><span class="t">Los vecinos te llaman o te escriben por WhatsApp con un toque.</span></div></li>
+  </ol>
+
+  <section class="alta" id="formulario">
+    <form id="form" autocomplete="off">
+      <label for="nombre">Nombre o negocio *</label>
+      <input id="nombre" type="text" maxlength="80" required>
+
+      <label for="categoria">Categoría *</label>
+      <select id="categoria" required>
+        <option value="">Elige una…</option>
+      </select>
+
+      <label for="categoria2">Segunda categoría (opcional)</label>
+      <select id="categoria2">
+        <option value="">Ninguna</option>
+      </select>
+      <p class="ayuda">Si ofreces servicios de dos tipos, elígelos aquí y salen en un solo anuncio.</p>
+
+      <label for="zona">Zona donde das servicio *</label>
+      <select id="zona" required>
+        <option value="">Elige una…</option>
+      </select>
+      <p class="ayuda"><strong>Toda la zona</strong> = Aranjuez, Chinchón, Ciempozuelos, Colmenar de Oreja, Titulcia, Villaconejos y las urbanizaciones.</p>
+
+      <label for="descripcion">Descripción (máx. 300 caracteres)</label>
+      <textarea id="descripcion" maxlength="300" placeholder="Qué ofreces, horarios…"></textarea>
+      <span class="contador" id="contador">0/300</span>
+
+      <label for="telefono">Teléfono de contacto *</label>
+      <input id="telefono" type="tel" maxlength="20" required placeholder="600 000 000">
+
+      <label for="enlace">Página web o red social (opcional)</label>
+      <input id="enlace" type="text" inputmode="url" maxlength="200" placeholder="https://www.instagram.com/tunegocio">
+
+      <label for="foto">Una foto (opcional)</label>
+      <input id="foto" type="file" accept="image/jpeg,image/png,image/webp">
+      <p class="ayuda">Se reduce automáticamente. Sube una imagen de tu trabajo o tu local, sin datos personales de terceros.</p>
+      <img id="previa" class="previa" alt="Vista previa de la foto">
+
+      <!-- Campo trampa contra bots -->
+      <div class="trampa" aria-hidden="true">
+        <label>No rellenar <input id="web" type="text" tabindex="-1"></label>
+      </div>
+
+      <label class="check">
+        <input type="checkbox" id="consent" required>
+        <span>Acepto que mi nombre, descripción y teléfono se publiquen en esta web, y la <a href="#" onclick="document.getElementById('privacidad').showModal();return false;">política de privacidad</a>.</span>
+      </label>
+
+      <button class="btn" id="enviar" type="submit">Enviar anuncio</button>
+      <div id="msg" class="msg" role="status"></div>
+    </form>
+    <p class="nota">¿Quieres modificar o borrar un anuncio? Escribe a <a href="mailto:tajolocal@gmail.com">tajolocal@gmail.com</a> y lo hacemos por ti.</p>
+  </section>
+
+  <section class="hecho" id="hecho" hidden role="status">
+    <div class="grande">✅</div>
+    <h2>¡Anuncio recibido!</h2>
+    <p>Lo revisaremos antes de publicarlo, así que puede tardar un poco en aparecer.</p>
+    <p>Si quieres modificarlo o borrarlo, escribe a <a href="mailto:tajolocal@gmail.com">tajolocal@gmail.com</a>.</p>
+    <div class="btns">
+      <a class="btn" href="index.html">Ver el directorio</a>
+      <button class="btn sec" type="button" id="otro">Enviar otro anuncio</button>
+    </div>
+  </section>
+</main>
+
+<footer>
+  Tajo Local · Web vecinal de las Vegas del Tajo. Proyecto no oficial hecho por un vecino.<br>
+  <a href="index.html">Ver anuncios</a> ·
+  <a href="#" onclick="document.getElementById('privacidad').showModal();return false;">Privacidad</a>
+</footer>
+
+<dialog id="privacidad">
+  <h2>Privacidad y condiciones de uso</h2>
+  <p>Los datos que envías (nombre o negocio, categoría, descripción y teléfono) se publican en esta web para que los vecinos puedan contactar contigo. No se usan para ningún otro fin ni se ceden a terceros.</p>
+  <p>Puedes pedir en cualquier momento que se modifique o elimine tu anuncio escribiendo al email de contacto indicado más abajo; se atenderá en un plazo máximo de 30 días. Los datos se almacenan en servidores de Supabase.</p>
+  <p><strong>Responsable:</strong> Luis Gómez · <a href="mailto:tajolocal@gmail.com">tajolocal@gmail.com</a></p>
+  <p><strong>Condiciones de uso:</strong> Tajo Local es un proyecto vecinal no oficial. Los anuncios los publican los propios anunciantes: Tajo Local no se responsabiliza de los servicios anunciados ni de los acuerdos entre vecinos y anunciantes. No se admiten anuncios ilegales ni datos de terceros sin su permiso, y cualquier anuncio puede retirarse sin previo aviso.</p>
+  <button class="btn" onclick="document.getElementById('privacidad').close()">Cerrar</button>
+</dialog>
+
+<script>
+  const SUPABASE_URL = "https://czlkxadbxltirtlbxyko.supabase.co";
+  const SUPABASE_KEY = "sb_publishable_YhkE6b9cqRcIHTMOWOfmnQ_kurrawSA";
+  const FOTOS_URL = SUPABASE_URL + "/storage/v1/object/public/fotos/";
+
+  const CATEGORIAS = [
+    "Fontanería", "Electricidad", "Cerrajería", "Obras y reformas",
+    "Jardinería y piscinas", "Limpieza", "Cuidado de niños y mayores",
+    "Clases y formación", "Belleza y bienestar", "Salud y terapias",
+    "Mascotas", "Comida y reparto", "Comercio y tiendas",
+    "Inmobiliaria y asesoría", "Automoción y transporte",
+    "Informática y tecnología", "Eventos y ocio", "Otros"
+  ];
+
+  const ZONAS = [
+    "Aranjuez", "Chinchón", "Ciempozuelos", "Colmenar de Oreja",
+    "Titulcia", "Villaconejos", "Urbanizaciones de Colmenar"
+  ];
+  const TODA = "Toda la zona";
+
+  const $ = id => document.getElementById(id);
+
+  CATEGORIAS.forEach(c => {
+    $("categoria").add(new Option(c, c));
+    $("categoria2").add(new Option(c, c));
+  });
+  ZONAS.forEach(z => $("zona").add(new Option(z, z)));
+  $("zona").add(new Option(TODA + " (Vegas del Tajo)", TODA));
+
+  function limpiaTel(t) {
+    return String(t || "").replace(/[^\d+]/g, "");
+  }
+
+  // Solo se aceptan enlaces http/https (nunca javascript: ni similares)
+  function urlSegura(u) {
+    try {
+      const x = new URL(String(u || "").trim());
+      return (x.protocol === "http:" || x.protocol === "https:") ? x.href : "";
+    } catch (e) { return ""; }
+  }
+  function normalizaUrl(u) {
+    u = String(u || "").trim();
+    if (!u) return "";
+    if (!/^https?:\/\//i.test(u)) u = "https://" + u;
+    return urlSegura(u);
+  }
+
+  // Confirmación grande tras enviar (y botón para enviar otro anuncio)
+  function muestraHecho() {
+    $("formulario").hidden = true;
+    $("hecho").hidden = false;
+    $("hecho").scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+  $("otro").addEventListener("click", () => {
+    $("hecho").hidden = true;
+    $("formulario").hidden = false;
+    $("msg").className = "msg";
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  });
+
+  // Contador de caracteres de la descripción
+  function actualizaContador() {
+    $("contador").textContent = $("descripcion").value.length + "/300";
+  }
+  $("descripcion").addEventListener("input", actualizaContador);
+
+  // Foto: se reduce a 900 px como máximo y se convierte a JPEG antes de subirla
+  let fotoBlob = null;
+
+  function codifica(canvas, calidad) {
+    return new Promise(ok => canvas.toBlob(ok, "image/jpeg", calidad));
+  }
+
+  function reduce(file) {
+    return new Promise((ok, ko) => {
+      const img = new Image();
+      const url = URL.createObjectURL(file);
+      img.onload = async () => {
+        const k = Math.min(1, 900 / Math.max(img.width, img.height));
+        const c = document.createElement("canvas");
+        c.width = Math.max(1, Math.round(img.width * k));
+        c.height = Math.max(1, Math.round(img.height * k));
+        const ctx = c.getContext("2d");
+        ctx.fillStyle = "#fff";
+        ctx.fillRect(0, 0, c.width, c.height);
+        ctx.drawImage(img, 0, 0, c.width, c.height);
+        URL.revokeObjectURL(url);
+        let b = await codifica(c, 0.82);
+        if (b && b.size > 900000) b = await codifica(c, 0.6);
+        b ? ok(b) : ko(new Error("no se pudo reducir"));
+      };
+      img.onerror = () => { URL.revokeObjectURL(url); ko(new Error("imagen no válida")); };
+      img.src = url;
+    });
+  }
+
+  async function subeFoto(blob) {
+    const nombreArchivo = (window.crypto && crypto.randomUUID ? crypto.randomUUID() : Date.now() + "-" + Math.random().toString(36).slice(2)) + ".jpg";
+    const r = await fetch(SUPABASE_URL + "/storage/v1/object/fotos/" + nombreArchivo, {
+      method: "POST",
+      headers: {
+        apikey: SUPABASE_KEY,
+        Authorization: "Bearer " + SUPABASE_KEY,
+        "Content-Type": "image/jpeg",
+        "x-upsert": "false"
+      },
+      body: blob
+    });
+    if (!r.ok) throw new Error("foto " + r.status);
+    return FOTOS_URL + nombreArchivo;
+  }
+
+  $("foto").addEventListener("change", async () => {
+    const f = $("foto").files[0];
+    const previa = $("previa");
+    const msg = $("msg");
+    fotoBlob = null;
+    previa.style.display = "none";
+    msg.className = "msg";
+    if (!f) return;
+    if (f.size > 15 * 1024 * 1024) {
+      $("foto").value = "";
+      msg.className = "msg err";
+      msg.textContent = "La foto es demasiado grande (máximo 15 MB).";
+      return;
+    }
+    try {
+      fotoBlob = await reduce(f);
+      previa.src = URL.createObjectURL(fotoBlob);
+      previa.style.display = "block";
+    } catch (e) {
+      $("foto").value = "";
+      msg.className = "msg err";
+      msg.textContent = "No se pudo leer esa imagen. Prueba con otra (JPG, PNG o WebP).";
+    }
+  });
+
+  $("form").addEventListener("submit", async ev => {
+    ev.preventDefault();
+    const msg = $("msg");
+    msg.className = "msg";
+
+    // Si un bot rellena el campo trampa, fingimos éxito y no enviamos nada
+    if ($("web").value) { muestraHecho(); return; }
+
+    const tel = $("telefono").value.trim();
+    if (limpiaTel(tel).length < 9) {
+      msg.className = "msg err";
+      msg.textContent = "Revisa el teléfono: parece demasiado corto.";
+      return;
+    }
+
+    const enlaceTexto = $("enlace").value.trim();
+    const enlace = normalizaUrl(enlaceTexto);
+    if (enlaceTexto && !enlace) {
+      msg.className = "msg err";
+      msg.textContent = "Revisa el enlace: no parece una dirección web válida.";
+      return;
+    }
+
+    const datos = {
+      nombre: $("nombre").value.trim(),
+      categoria: [$("categoria").value, $("categoria2").value]
+        .filter((c, i, a) => c && a.indexOf(c) === i).join(", "),
+      zona: $("zona").value,
+      descripcion: $("descripcion").value.trim().slice(0, 300) || null,
+      telefono: tel,
+      enlace: enlace || null
+    };
+
+    $("enviar").disabled = true;
+    try {
+      if (fotoBlob) datos.foto = await subeFoto(fotoBlob);
+      const r = await fetch(SUPABASE_URL + "/rest/v1/negocios", {
+        method: "POST",
+        headers: {
+          apikey: SUPABASE_KEY,
+          Authorization: "Bearer " + SUPABASE_KEY,
+          "Content-Type": "application/json",
+          Prefer: "return=minimal"
+        },
+        body: JSON.stringify(datos)
+      });
+      if (!r.ok) throw new Error(r.status);
+      $("form").reset();
+      fotoBlob = null;
+      $("previa").style.display = "none";
+      actualizaContador();
+      muestraHecho();
+    } catch (e) {
+      msg.className = "msg err";
+      msg.textContent = "No se pudo enviar el anuncio. Inténtalo de nuevo en unos minutos.";
+    } finally {
+      $("enviar").disabled = false;
+    }
+  });
+
+</script>
+</body>
+</html>
