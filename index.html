@@ -299,10 +299,12 @@
   const FOTOS_URL = SUPABASE_URL + "/storage/v1/object/public/fotos/";
 
   const CATEGORIAS = [
-    "Fontanería", "Electricidad", "Jardinería y piscinas", "Limpieza",
-    "Obras y reformas", "Clases y formación", "Cuidado de niños y mayores",
-    "Comida y reparto", "Belleza y bienestar", "Mascotas", "Transporte",
-    "Informática y tecnología", "Otros"
+    "Fontanería", "Electricidad", "Cerrajería", "Obras y reformas",
+    "Jardinería y piscinas", "Limpieza", "Cuidado de niños y mayores",
+    "Clases y formación", "Belleza y bienestar", "Salud y terapias",
+    "Mascotas", "Comida y reparto", "Comercio y tiendas",
+    "Inmobiliaria y asesoría", "Automoción y transporte",
+    "Informática y tecnología", "Eventos y ocio", "Otros"
   ];
 
   const $ = id => document.getElementById(id);
@@ -340,20 +342,27 @@
   const ICONOS = {
     "Fontanería": ["🔧", "#dbeafe"],
     "Electricidad": ["⚡", "#fef3c7"],
+    "Cerrajería": ["🔑", "#e5e7eb"],
+    "Obras y reformas": ["🧱", "#fde7d3"],
     "Jardinería y piscinas": ["🌿", "#dcfce7"],
     "Limpieza": ["🧽", "#cffafe"],
-    "Obras y reformas": ["🧱", "#fde7d3"],
-    "Clases y formación": ["📚", "#ede9fe"],
     "Cuidado de niños y mayores": ["🤝", "#fce7f3"],
-    "Comida y reparto": ["🍽️", "#ffedd5"],
+    "Clases y formación": ["📚", "#ede9fe"],
     "Belleza y bienestar": ["💆", "#f3e8ff"],
+    "Salud y terapias": ["🩺", "#d1fae5"],
     "Mascotas": ["🐾", "#fef9c3"],
-    "Transporte": ["🚐", "#e0e7ff"],
+    "Comida y reparto": ["🍽️", "#ffedd5"],
+    "Comercio y tiendas": ["🛍️", "#fee2e2"],
+    "Inmobiliaria y asesoría": ["🏠", "#e0f2fe"],
+    "Automoción y transporte": ["🚗", "#e0e7ff"],
     "Informática y tecnología": ["💻", "#e2e8f0"],
+    "Eventos y ocio": ["🎉", "#fce7f3"],
     "Otros": ["🏡", "#e8f3ed"]
   };
+  // Nombres antiguos de categoría (por si quedan anuncios con ellos)
+  const CAT_ANTIGUAS = { "Transporte": "Automoción y transporte" };
   function banda(cat) {
-    const [icono, fondo] = ICONOS[cat] || ICONOS["Otros"];
+    const [icono, fondo] = ICONOS[cat] || ICONOS[CAT_ANTIGUAS[cat]] || ICONOS["Otros"];
     return `<div class="banda" style="background:${fondo}" aria-hidden="true">${icono}</div>`;
   }
 
