@@ -202,6 +202,7 @@
   function urlSegura(u) {
     try {
       const x = new URL(String(u || "").trim());
+      if (x.username || x.password) return "";   // p. ej. "correo@gmail.com" convertido en https://correo@gmail.com
       return (x.protocol === "http:" || x.protocol === "https:") ? x.href : "";
     } catch (e) { return ""; }
   }
@@ -318,6 +319,11 @@
     }
 
     const enlaceTexto = $("enlace").value.trim();
+    if (/^[^\s@\/:]+@[^\s@\/:]+\.[^\s@\/:]+$/.test(enlaceTexto)) {
+      msg.className = "msg err";
+      msg.textContent = "Eso parece un correo electrónico. Aquí va una página web o red social. Si quieres que te contacten por correo, escríbelo en la descripción.";
+      return;
+    }
     const enlace = normalizaUrl(enlaceTexto);
     if (enlaceTexto && !enlace) {
       msg.className = "msg err";
