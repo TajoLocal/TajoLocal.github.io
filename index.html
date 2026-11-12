@@ -334,6 +334,7 @@
   function urlSegura(u) {
     try {
       const x = new URL(String(u || "").trim());
+      if (x.username || x.password) return "";   // p. ej. "correo@gmail.com" convertido en https://correo@gmail.com
       return (x.protocol === "http:" || x.protocol === "https:") ? x.href : "";
     } catch (e) { return ""; }
   }
